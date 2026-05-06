@@ -6,6 +6,9 @@ This project analyzes sales transaction data to uncover key business insights an
 
 It demonstrates an **end-to-end data science workflow**, extended into an **interactive Streamlit dashboard** where users can explore data and generate real-time predictions.
 
+## 🌐 Live Demo  
+👉 https://sales-analyzer.streamlit.app
+
 The project covers:
 
 * Data cleaning and preprocessing
