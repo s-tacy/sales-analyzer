@@ -25,7 +25,7 @@ Built with:
 """)
 
 # 2. Loading data
-df = pd.read_csv("../data/sales.csv")
+df = pd.read_csv("data/sales.csv")
 
 # 3. Feature Engineering
 df["Revenue"] = df["Price"] * df["Quantity"]
