@@ -9,13 +9,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, confusion_matrix
 
 
-st.set_page_config(page_title="Sales Dashboard", layout="wide")
-
 st.title("📊 Sales Data Analyzer Dashboard")
-st.markdown("""
-📈 Sales Intelligence Dashboard  
-Analyze performance, predict revenue outcomes, and understand key business drivers.
-""")
+st.caption("An interactive machine learning dashboard for revenue prediction")
 
 st.sidebar.title("Sales Analyzer")
 st.sidebar.write("""
@@ -30,7 +25,7 @@ Built with:
 """)
 
 # 2. Loading data
-df = pd.read_csv("data/sales.csv")
+df = pd.read_csv("../data/sales.csv")
 
 # 3. Feature Engineering
 df["Revenue"] = df["Price"] * df["Quantity"]
@@ -81,38 +76,20 @@ with tab1:
     st.dataframe(df.head())
     st.markdown("---")
 
-    total_revenue = df["Revenue"].sum()
-    avg_revenue = df["Revenue"].mean()
-    total_sales = len(df)
-
-    col1, col2, col3 =st.columns(3)
-    with col1:
-        st.metric("💰 Total Revenue", f"{total_revenue:.0f}")
-
-    with col2:
-        st.metric("📊 Avg Revenue", f"{avg_revenue:.2f}")
-
-    with col3:
-        st.metric("🧾 Total Transactions", total_sales)
-
-    st.markdown("---")
-
     col1, col2 = st.columns(2)
 
     with col1:
         fig, ax = plt.subplots()
         df.groupby("Product")["Revenue"].sum().plot(kind="bar", ax=ax)
-        ax.set_title("Revenue By Product", fontsize=12)
-        ax.set_xlabel("")
+        ax.set_title("Revenue By Product")
+        ax.set_xlabel("Product")
         ax.set_ylabel("Revenue")
-
-        ax.spines[['top', 'right']].set_visible(False)
         st.pyplot(fig)
 
     with col2:
         fig2, ax2 = plt.subplots()
         df.groupby("Region")["Revenue"].sum().plot(
-            kind="pie", autopct="%1.1f%%", ax=ax2, startangle=90
+            kind="pie", autopct="%1.1f%%", ax=ax2
         )
         ax2.set_title("Revenue Distribution By Region")
         ax2.set_ylabel("")
@@ -120,8 +97,8 @@ with tab1:
 
 # ================== MODEL ==================
 with tab2:
-    st.markdown("## 🎛️ Prediction Panel")
-    st.caption("Adjust inputs to simulate a transaction and predict revenue outcome")
+    st.subheader("Model Performance")
+    st.write("Accuracy:", accuracy)
 
     st.write("Confusion Matrix:")
     st.dataframe(cm)
@@ -167,11 +144,9 @@ with tab2:
             probability = model.predict_proba(input_final)[0]
 
             if prediction == 1:
-                st.markdown("### 🔥 High Revenue Transaction")
-                st.success("This transaction is expected to generate strong revenue.")
+                st.success("This transaction is likely to generate high revenue.")
             else:
-                st.markdown("### ⚠️ Low Revenue Transaction")
-                st.warning("This transaction may not generate significant revenue.")
+                st.warning("This transaction may not generate high revenue.")
 
             st.subheader("📊 Prediction Confidence")
 
@@ -180,7 +155,7 @@ with tab2:
                 "Probability": probability
             })
 
-            st.bar_chart(confidence_df.set_index("Class"))
+            st.dataframe(confidence_df)
 
             # Explanation
             st.subheader("🧠 Prediction Explanation")
@@ -203,4 +178,4 @@ with tab2:
 # ================== INSIGHTS ==================
 with tab3:
     st.subheader("Feature Importance")
-    st.bar_chart(feature_importance.set_index("Feature"))
+    st.dataframe(feature_importance)
