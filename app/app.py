@@ -2,9 +2,12 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.express as px
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, confusion_matrix
 
@@ -25,7 +28,7 @@ Built with:
 """)
 
 # 2. Loading data
-df = pd.read_csv("../data/sales.csv")
+df = pd.read_csv("data/sales.csv")
 
 # 3. Feature Engineering
 df["Revenue"] = df["Price"] * df["Quantity"]
@@ -54,11 +57,22 @@ X_test_scaled = scaler.transform(X_test)
 model = LogisticRegression(max_iter=500)
 model.fit(X_train_scaled, y_train)
 
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model.fit(X_train_scaled, y_train)
+
+tree_model = DecisionTreeClassifier(random_state=42)
+tree_model.fit(X_train_scaled, y_train)
+
 # Predictions
 y_pred = model.predict(X_test_scaled)
+rf_pred = rf_model.predict(X_test_scaled)
+tree_pred = tree_model.predict(X_test_scaled)
 
 # Evaluation
 accuracy = accuracy_score(y_test, y_pred)
+rf_accuracy = accuracy_score(y_test, rf_pred)
+tree_accuracy = accuracy_score(y_test, tree_pred)
+
 cm = confusion_matrix(y_test, y_pred)
 
 # Feature Importance
@@ -79,21 +93,31 @@ with tab1:
     col1, col2 = st.columns(2)
 
     with col1:
-        fig, ax = plt.subplots()
-        df.groupby("Product")["Revenue"].sum().plot(kind="bar", ax=ax)
-        ax.set_title("Revenue By Product")
-        ax.set_xlabel("Product")
-        ax.set_ylabel("Revenue")
-        st.pyplot(fig)
+        product_sales =df.groupby("Product")["Revenue"].sum().reset_index()
+
+        fig = px.bar(
+            product_sales,
+            x="Product",
+            y="Revenue",
+            title="Revenue by Product",
+            color="Revenue",
+            color_continuous_scale="viridis"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
 
     with col2:
-        fig2, ax2 = plt.subplots()
-        df.groupby("Region")["Revenue"].sum().plot(
-            kind="pie", autopct="%1.1f%%", ax=ax2
+        region_sales = df.groupby("Region")["Revenue"].sum().reset_index()
+
+        fig2 = px.pie(
+            region_sales,
+            names="Region",
+            values="Revenue",
+            title="Revenue Distribution by Region"
+
         )
-        ax2.set_title("Revenue Distribution By Region")
-        ax2.set_ylabel("")
-        st.pyplot(fig2)
+
+        st.plotly_chart(fig2,use_container_width=True)
 
 # ================== MODEL ==================
 with tab2:
@@ -104,6 +128,27 @@ with tab2:
     st.dataframe(cm)
 
     st.markdown("---")
+
+    st.subheader("📊 Model Comparison")
+
+    comparison_df = pd.DataFrame({
+        "Model": ["Logistic Regression", "Random Forest", "Decision Tree"],
+        "Accuracy": [accuracy, rf_accuracy, tree_accuracy]
+    })
+
+    st.dataframe(comparison_df)
+
+    fig = px.bar(
+        comparison_df,
+        x="Model",
+        y="Accuracy",
+        color="Model",
+        title = "Model Performance Comparison"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+    st.markdown("-------")
+
     st.subheader("Make a Sales Prediction")
 
     col1, col2 = st.columns(2)
